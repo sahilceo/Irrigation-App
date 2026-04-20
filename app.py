@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
 
+# Page config
 st.set_page_config(page_title="Smart Irrigation", layout="wide")
 
-# --------- CUSTOM CSS (for app look) ----------
+# ---------- UI STYLE ----------
 st.markdown("""
 <style>
 .main {
@@ -26,8 +27,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --------- HEADER ----------
-st.markdown(f"""
+# ---------- HEADER ----------
+st.markdown("""
 <div class="card">
     <div class="title">Good Morning, Sahil 👋</div>
     <div class="subtitle">Smart Irrigation System</div>
@@ -36,18 +37,31 @@ st.markdown(f"""
 
 st.write("")
 
-# --------- FILE UPLOAD ----------
+# ---------- FILE UPLOAD ----------
 file = st.file_uploader("Upload your CSV file", type="csv")
 
 if file:
+    # Fix encoding issue
     df = pd.read_csv(file, encoding='latin1')
 
-    # --------- CARDS (like your image) ----------
+    # Clean column names
+    df.columns = df.columns.str.strip()
+
+    # Show columns (optional debug)
+    st.write("Detected Columns:", df.columns)
+
+    # Auto-detect columns
+    time_col = df.columns[0]
+    soil_col = df.columns[1]
+    temp_col = df.columns[2]
+    hum_col = df.columns[3]
+
+    # ---------- CARDS ----------
     col1, col2, col3 = st.columns(3)
 
-    soil = df["Soil Moisture"].iloc[-1]
-    temp = df["Temperature"].iloc[-1]
-    hum = df["Humidity"].iloc[-1]
+    soil = df[soil_col].iloc[-1]
+    temp = df[temp_col].iloc[-1]
+    hum = df[hum_col].iloc[-1]
 
     col1.markdown(f"<div class='card'>🌱 Soil Moisture<br><h2>{soil}</h2></div>", unsafe_allow_html=True)
     col2.markdown(f"<div class='card'>🌡 Temperature<br><h2>{temp}°C</h2></div>", unsafe_allow_html=True)
@@ -55,17 +69,17 @@ if file:
 
     st.write("")
 
-    # --------- GRAPH ----------
+    # ---------- GRAPH ----------
     st.markdown("### 📈 Sensor Trends")
-
-    st.line_chart(df.set_index("Time")[["Soil Moisture","Temperature","Humidity"]])
+    st.line_chart(df.set_index(time_col)[[soil_col, temp_col, hum_col]])
 
     st.write("")
 
-    # --------- PUMP STATUS ----------
-    st.markdown("### 🚰 Pump Status")
-
-    st.dataframe(df[["Time","Pump Action"]], use_container_width=True)
+    # ---------- PUMP STATUS ----------
+    if len(df.columns) >= 5:
+        pump_col = df.columns[4]
+        st.markdown("### 🚰 Pump Status")
+        st.dataframe(df[[time_col, pump_col]], use_container_width=True)
 
 else:
-    st.info("Upload your CSV to see dashboard")
+    st.info("Upload your CSV file to start")
