@@ -40,7 +40,7 @@ st.write("")
 file = st.file_uploader("Upload your CSV file", type="csv")
 
 if file:
-    df = pd.read_csv(file)
+    df = pd.read_csv(file, encoding='latin1')
 
     # --------- CARDS (like your image) ----------
     col1, col2, col3 = st.columns(3)
